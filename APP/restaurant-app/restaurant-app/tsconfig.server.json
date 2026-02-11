@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/server",
+    "types": ["node"]
+  },
+  "files": ["src/main.server.ts"],
+  "angularCompilerOptions": {
+    "entryModule": "src/app/app.server.module.ts"
+  }
+}

@@ -1,0 +1,22 @@
+<img src="/assets/back-con-logo.png" class="full-background">
+<div class="keypad-container">
+  <div class="keypad-box">
+    <input 
+      type="number" 
+      [value]="inputValue" 
+      inputmode="numeric" 
+      pattern="[0-9]*" 
+      readonly 
+      class="input-field"
+      placeholder="Enter code"
+    />
+
+    <div class="keys-grid">
+      <button *ngFor="let key of ['1','2','3','4','5','6','7','8','9','0']" (click)="pressKey(key)">
+        {{ key }}
+      </button>
+      <button (click)="deleteKey()">←</button>
+      <button (click)="submit()">✔</button>
+    </div>
+  </div>
+</div>

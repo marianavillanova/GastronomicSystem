@@ -1,0 +1,40 @@
+:host {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 100vh;
+  background-color: #143a44;
+  padding: 0.5rem;
+  z-index: 1000;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+button {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  padding: 14px 20px;
+  margin: 4px;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  background-color: #ffffff33;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+  &:hover {
+    background-color: #ffffff55;
+    transform: scale(1.02);
+  }
+
+  &.selected {
+    background-color: #0c2026;
+    font-weight: bold;
+    border: #ccc solid 0.5px;
+  }
+}

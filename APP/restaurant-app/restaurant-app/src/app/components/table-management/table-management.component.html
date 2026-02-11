@@ -1,0 +1,54 @@
+<div class="table-management-container">
+   <app-sidebar-menu
+      *ngIf="isElevatedRole()"
+      [role]="role"
+      class="sidebar-overlay">
+    </app-sidebar-menu>
+
+    <button class="back-button" (click)="goBack()">Back</button>
+  <div class="image-wrapper">
+    <img src="/assets/BAR.png" class="background-image" />
+    <div class="tables-map">
+      @for (table of tables; track table.tableNumber) {
+        <div
+          class="table-rect"
+          [ngStyle]="getTablePosition(table.tableNumber)"
+          [class.occupied]="table.status"
+          [class.disabled]="table.status && table.employeeId !== employeeId && !['manager', 'supervisor', 'head waiter'].includes(role)"
+          [class.accessible-by-role]="table.status && table.employeeId !== employeeId && ['manager', 'supervisor', 'head waiter'].includes(role)"
+          (click)="handleTableClick(table)"
+        >
+          {{ table.tableNumber }}
+        </div>
+      }
+      
+    </div>
+
+    
+      @if (showGuestPrompt) {
+        <div class="guest-prompt-wrapper" (click)="closeGuestPrompt()">
+          <div class="overlay"></div>
+
+          <div class="guest-prompt" (click)="$event.stopPropagation()">
+            <h2>How many guests are sitting?</h2>
+
+            <div class="guest-buttons">
+              @for (count of quickGuestOptions; track count) {
+                <button (click)="selectGuestCount(count)">
+                  {{ count }}
+                </button>
+              }
+              <button class="plus-button" (click)="enableManualInput()">+</button>
+            </div>
+
+            @if (manualInputEnabled) {
+              <div class="manual-input">
+                <input type="number" min="1" [(ngModel)]="manualGuestCount" placeholder="Enter number" />
+                <button (click)="confirmManualCount()">Confirm</button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+  </div>
+</div>

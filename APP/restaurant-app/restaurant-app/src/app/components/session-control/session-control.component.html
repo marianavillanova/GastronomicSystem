@@ -1,0 +1,38 @@
+<div class="session-wrapper">
+  <div class="session-container">
+    <h2>Session Control</h2>
+
+    @if (!sessionActive && !currentReport) {
+      <p>⚪ No active session</p>
+      <button (click)="startSession()">🟢 Start Shift</button>
+    } @else if (sessionActive) {
+      <p>🔒 Active session started by {{ sessionUser }} at {{ sessionStartTime }}</p>
+      <button (click)="endSession()">🔴 End Shift</button>
+    } @else if (currentReport) {
+      <h3>Daily Report: {{ currentReport.reportDate | date:'longDate' }}</h3>
+        <p class="report-line">
+          <span class="label">Revenue:</span>
+          <span class="value">
+            {{ currentReport.totalIncome | currency }}
+            <span class="discount">(Discount: {{ currentReport.totalDiscount | currency }})</span>
+          </span>
+        </p>
+
+        <p class="report-line">
+          <span class="label">Total Pax:</span>
+          <span class="value">{{ currentReport.totalPax }}</span>
+        </p>
+
+        @for (payment of currentReport.paymentBreakdown; track trackByPaymentMethod($index, payment)) {
+          <p class="report-line">
+            <span class="label">{{ payment.paymentMethod }}:</span>
+            <span class="value">{{ payment.totalRevenue | currency }}</span>
+          </p>
+        }
+      <button (click)="downloadPdf(currentReport.reportDate)" [disabled]="!currentReport">
+        ⬇️ Download PDF
+      </button>
+    }
+      <button (click)="goBack()"> Back</button>
+  </div>
+</div>

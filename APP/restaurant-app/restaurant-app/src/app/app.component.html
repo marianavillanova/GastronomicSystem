@@ -1,0 +1,10 @@
+<router-outlet></router-outlet>
+
+@if (alertService.alert$ | async; as alert) {
+  <app-alert-modal
+    [title]="alert.title ?? 'Notice'"
+    [message]="alert.message"
+    [type]="alert.type ?? 'warning'"
+    (close)="alertService.close()">
+  </app-alert-modal>
+}

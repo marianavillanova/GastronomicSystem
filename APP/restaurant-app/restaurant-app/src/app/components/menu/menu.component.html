@@ -1,0 +1,329 @@
+
+
+  @if (!isLoading) {
+    <div class="app-container">
+      <!-- 🧭 Left Panel: Menu Navigation -->
+      <div class="menu-panel">
+        <!-- Category Buttons -->
+        @if (categories.length > 0) {
+          <div class="category-section">
+            @for (cat of categories; track cat) {
+              <button 
+                (click)="selectCategory(cat)" 
+                [ngClass]="{ 'selected': cat === selectedCategory }">
+                {{ cat }}
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Subcategory Buttons -->
+        @if (selectedCategory) {
+          <div class="subcategory-section">
+            <h3>Subcategories in {{ selectedCategory }}</h3>
+            @for (sub of subcategories; track sub) {
+              <button 
+                (click)="selectSubCategory(sub)" 
+                [ngClass]="{ 'selected': sub === selectedSubCategory }">
+                {{ sub }}
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Article List -->
+        @if (selectedSubCategory) {
+        <div class="article-section" id="article-section">
+          <h3>Articles in {{ selectedSubCategory }}</h3>
+          @if (filteredArticles.length > 0) {
+            <div class="article-row">
+              @for (article of filteredArticles; track article.articleId) {
+                <div class="article-card" (click)="addToOrder(article)">
+                  <strong>{{ article.name }}</strong> - €{{ article.price }}<br>
+                  <small>{{ article.description }}</small>
+                </div>
+              }
+            </div>
+          } @else {
+            <p>No items available in this subcategory.</p>
+          }
+        </div>
+      }
+
+      </div>
+
+      <!-- 🧾 Right Panel: Order Summary -->
+      <div class="order-panel">
+      <div class="order-header">
+        <img src="assets/brand.png" alt="GASTRO Logo" class="logo" />
+        <div class="order-meta">
+          <p><strong>Table number:</strong> {{ tableId }}</p>
+          <p><strong>Employee:</strong> {{ employeeName }}</p>
+        </div>
+      </div>
+      <div class="order-content">
+          <div class="order-label">
+            <span>Order</span>
+          </div>
+
+          <!-- 🧾 Previously placed items -->
+          @if (currentOrderItems.length > 0) {
+            <ul class="existing-order">
+              @for (item of currentOrderItems; track item.articleId) {
+                <li [class.discounted]="item.discount">
+                  <div class="item-block">
+                    <div class="item-left">
+                      <!-- ✅ Conditionally show delete button -->
+                      @if (canDeleteSubmittedItem()) {
+                        <button (click)="deleteSubmittedItem(item)" class="trash-button" title="Delete item">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      }
+
+                      <span class="item-name">{{ item.quantity }} × {{ item.article?.name }}</span>
+                      @if (item.comment) {
+                        <span class="item-comment">{{ item.comment }}</span>
+                      }
+                    </div>
+
+                    <div class="item-right">
+                      <div class="price-block">
+                        @if (item.discount) {
+                          <span class="original-price">
+                            €{{ item.price * item.quantity | number:'1.2-2' }}
+                          </span>
+                          <small class="discount-tag">(-{{ item.discount }}%)</small>
+                        }
+                        <span class="item-price">
+                          €{{ (item.price * (1 - (item.discount ?? 0) / 100)) * item.quantity | number:'1.2-2' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              }
+
+
+              
+            </ul>
+
+            <!-- 🔸 Divider -->
+            <hr class="order-divider" />
+          }
+
+          <!-- 🛒 Newly selected items -->
+          <ul class="new-order" *ngIf="selectedArticles.length > 0">
+            <li *ngFor="let item of selectedArticles; trackBy: trackByArticleId" [class.discounted]="item.discount">
+              <div class="item-block">
+                <div class="item-left" (dblclick)="openCommentModal(item)">
+                  <button (click)="removeFromOrder(item)" class="trash-button" title="Remove item">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                  <span class="item-name">{{ item.quantity }} × {{ item.name }}</span>
+                  <span *ngIf="item.comment" class="item-comment">{{ item.comment }}</span>
+                </div>
+
+                <div class="item-right" (dblclick)="openDiscountModal(item)">
+                  <div class="price-block">
+                    <span *ngIf="item.discount" class="original-price">
+                      €{{ item.price * item.quantity | number:'1.2-2' }}
+                    </span>
+                    <small *ngIf="item.discount" class="discount-tag">(-{{ item.discount }}%)</small>
+                    <span class="item-price">
+                      €{{ (item.price * (1 - (item.discount ?? 0) / 100)) * item.quantity | number:'1.2-2' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </li>
+
+          </ul>
+        </div>
+
+          <div class="order-footer">
+            <!-- 🔹 Row 1: Subtotal + Discount Label stacked on right -->
+            <div class="summary-row stacked-right">
+              <div class="left">
+                <button (click)="openGlobalDiscountModal()">Discount</button>
+              </div>
+              <div class="right">
+                <span class="subtotal">Subtotal: €{{ getSubtotal() }}</span>
+                <span *ngIf="globalDiscountPercentage" class="discount-label">
+                  Discount: –{{ globalDiscountPercentage }}%
+                </span>
+              </div>
+            </div>
+
+            <!-- 🔹 Row 2: Button on left, total on right -->
+            <div class="summary-row">
+              <div class="right">
+                <span class="total">Total: €{{ getTotal() }}</span>
+              </div>
+            </div>
+
+            <!-- 🔹 Action Buttons -->
+            <div class="order-actions">
+              <button (click)="submitOrder()">Send</button>
+              <button (click)="goBack()">Back</button>
+              <button (click)="openPaymentModal()">Pay</button>
+            </div>
+          </div>
+      </div>
+    </div>
+    } @else {
+      <!-- 🌀 Loading Spinner -->
+      <div class="loading-spinner">
+        Loading menu...
+      </div>
+    }
+
+    <!-- 📝 Comment Modal -->
+      <div *ngIf="showCommentModal" class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+          <h3>Add Comment for {{ activeItem?.name }}</h3>
+          <input 
+            type="text" 
+            [(ngModel)]="activeItem.comment" 
+            placeholder=" Type your comment..." 
+            class="modal-input"
+            (focus)="triggerKeyboard()"
+          />
+          <div class="modal-actions">
+            <button  (click)="closeModals()">Back</button>
+            <button  (click)="submitComment()">OK</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🔖 Discount Modal -->
+      <div *ngIf="showDiscountModal" class="modal-overlay" (click)="closeModals()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+          <h3>Apply Discount to {{ activeItem?.name }}</h3>
+            <input
+              type="number"
+              [(ngModel)]="tempDiscount"
+              placeholder=" Discount (%)"
+              class="modal-input"
+              (focus)="triggerKeyboard()"
+            />
+
+
+          <div class="modal-actions">
+            <button (click)="closeModals()">Back</button>
+            <button (click)="submitDiscount()">OK</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Global Discount Modal-->
+       <div *ngIf="showGlobalDiscountModal" class="modal-overlay" (click)="closeModals()">
+          <div class="modal-box" (click)="$event.stopPropagation()">
+            <h3>Apply Global Discount</h3>
+            <input type="number"
+                  [(ngModel)]="globalDiscountPercentage"
+                  min="0.01"
+                  max="100"
+                  step="0.01"
+                  placeholder="Discount %" />
+            <div class="modal-actions">
+              <button (click)="closeModals()">Back</button>
+              <button (click)="submitGlobalDiscount()">OK</button>
+            </div>
+          </div>
+        </div>
+
+
+      <!-- 💳 Payment Modal -->
+      <div *ngIf="showPaymentModal" class="payment-modal" (click)="closePaymentModal()">
+        <div class="payment-box" (click)="$event.stopPropagation()">
+          <h3>Select Customer Type</h3>
+          <div class="modal-actions">
+            <button (click)="selectCustomerType('final')">Final</button>
+            <button (click)="selectCustomerType('corporate')">Corporate</button>
+          </div>
+
+          <!-- Final Customer Flow -->
+          <div *ngIf="customerType === 'final'">
+            <h3>Select Payment Method</h3>
+            <div class="modal-actions">
+              <button (click)="selectPaymentMethod('cash')">Cash</button>
+              <button (click)="selectPaymentMethod('card')">Card</button>
+              <button (click)="selectPaymentMethod('split')">Split Bill</button>
+            </div>
+
+            <ng-container *ngIf="paymentMethod === 'split'">
+              <ng-container *ngTemplateOutlet="splitBlock"></ng-container>
+            </ng-container>
+
+
+            <div *ngIf="paymentMethod === 'cash' || paymentMethod === 'card'" class="modal-actions">
+              <button (click)="processPayment(paymentMethod)">Pay</button>
+            </div>
+          </div>
+
+          <!-- Corporate Customer Flow -->
+          <div *ngIf="customerType === 'corporate'">
+            <!-- Step 1: Corporate Info -->
+            <ng-container *ngIf="corporateStep === 'info'">
+              <h3>Enter Corporate Info</h3>
+              <form #corporateForm="ngForm">
+                <div class="modal-inputs">
+                  <input name="companyName" [(ngModel)]="corporateInfo.companyName" #companyName="ngModel" required placeholder="Company Name" />
+                  <input name="vatNumber" [(ngModel)]="corporateInfo.vatNumber" #vatNumber="ngModel" required placeholder="VAT Number" />
+                  <input name="address" [(ngModel)]="corporateInfo.address" #address="ngModel" required placeholder="Address" />
+                  <input name="contact" [(ngModel)]="corporateInfo.contact" #contact="ngModel" required placeholder="Contact Info" />
+                </div>
+                <div class="modal-actions">
+                  <button [disabled]="corporateForm.invalid" (click)="continueCorporate()">Continue</button>
+                </div>
+              </form>
+            </ng-container>
+
+            <!-- Step 2: Payment Method -->
+            <ng-container *ngIf="corporateStep === 'payment'">
+              <h3>Select Payment Method</h3>
+              <div class="modal-actions">
+                <button (click)="selectPaymentMethod('cash')">Cash</button>
+                <button (click)="selectPaymentMethod('card')">Card</button>
+                <button (click)="selectPaymentMethod('split')">Split Bill</button>
+              </div>
+
+              <ng-container *ngIf="paymentMethod === 'split'">
+                <ng-container *ngTemplateOutlet="splitBlock"></ng-container>
+              </ng-container>
+
+
+              <div *ngIf="paymentMethod === 'cash' || paymentMethod === 'card'" class="modal-actions">
+                <button (click)="processPayment(paymentMethod)">Pay</button>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+
+        <ng-template #splitBlock>
+          <div class="modal-inputs">
+            <label for="cash">💵 Cash Amount</label>
+            <input id="cash"
+                  type="number"
+                  [ngModel]="splitCashAmount"
+                  (ngModelChange)="onCashAmountChange($event)"
+                  [max]="totalAmount"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="Cash Amount" />
+
+            <label for="card">💳 Card Amount</label>
+            <input id="card"
+                  type="number"
+                  [value]="splitCardAmount"
+                  disabled
+                  class="card-input"
+                  placeholder="Card Amount (auto)" />
+
+            <button [disabled]="splitCashAmount < 0.01 || splitCashAmount > totalAmount"
+                    (click)="processSplitPayment()">Pay</button>
+          </div>
+        </ng-template>
+
+      </div>

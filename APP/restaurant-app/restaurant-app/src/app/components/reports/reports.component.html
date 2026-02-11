@@ -1,0 +1,100 @@
+<div class="reports">
+  <div class="report-card">
+    <!-- Tab navigation -->
+    <nav class="tabs">
+      <button
+        class="tab"
+        [class.active]="selectedTab() === 'summary'"
+        (click)="selectTab('summary')"
+      >
+        📊 Summary
+      </button>
+      <button
+        class="tab"
+        [class.active]="selectedTab() === 'mostSold'"
+        (click)="selectTab('mostSold')"
+      >
+        🍽️ Most Sold
+      </button>
+      <button
+        class="tab"
+        [class.active]="selectedTab() === 'customerTypes'"
+        (click)="selectTab('customerTypes')"
+      >
+        👥 Customer Types
+      </button>
+    </nav>
+
+    <!-- Input area -->
+    <div class="controls">
+      <label>
+        Start Date:
+        <input type="date" 
+        [value]="startDate()" 
+        (input)="updateStartDate(($any($event.target)).value)">
+      </label>
+      <label>
+        End Date:
+        <input type="date" 
+        [value]="endDate()" 
+        (input)="updateEndDate(($any($event.target)).value)">
+      </label>
+      <button (click)="loadRangeReports()">Load Reports</button>
+    </div>
+
+
+
+    <!-- Report content -->
+    <div class="report-content">
+      @if (selectedTab() === 'summary' && salesReport()) {
+        <section>
+          <h3>Summary</h3>
+          <p>Total Sales: {{ salesReport()?.totalIncome | currency:'EUR':'symbol' }}</p>
+          <p>Total Orders: {{ salesReport()?.totalOrders }}</p>
+          <p>Total Pax: {{ salesReport()?.totalPax }}</p>
+          <p>Total Discount: {{ salesReport()?.totalDiscount }}</p>
+        </section>
+      }
+
+      @if (selectedTab() === 'mostSold' && mostSold().length > 0) {
+        <section>
+          <h3>Most Sold Articles</h3>
+
+          <canvas
+           baseChart
+            [options]="{ responsive: true, maintainAspectRatio: false }"
+            [data]="{ labels: mostSoldLabels(), datasets: [ { data: mostSoldData(), label: 'Quantity Sold' } ] }"
+            [type]="'bar'">
+          </canvas>
+
+          <ul>
+           @for (item of mostSold(); track trackByArticle($index, item)) {
+              <li>{{ item.articleName }} — {{ item.quantitySold }} (Revenue: {{ item.totalIncome }})</li>
+            }
+          </ul>
+        </section>
+
+      }
+
+      @if (selectedTab() === 'customerTypes' && customerTypes()) {
+        <section>
+          <h3>Customer Types</h3>
+
+          <canvas
+            baseChart
+            [options]="{ responsive: true, maintainAspectRatio: false }"
+            [data]="{ labels: customerTypeLabels(), datasets: [ { data: customerTypeData() } ] }"
+            [type]="'pie'">
+          </canvas>
+
+          <ul>
+            @for (ct of customerTypes()?.customerTypeBreakdown; track ct) {
+              <li>{{ ct.customerType }} — {{ ct.transactionCount }} (Revenue: {{ ct.totalRevenue }})</li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+    <button class="back-btn" (click)="goBack()"> Back</button>
+  </div>
+</div>
